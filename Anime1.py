@@ -15,9 +15,22 @@ debug = True
 
 
 dbname = 'anime1.db'
+'''
+def delay()
+def updateDB()
+def initDB(update=False)
+def insert(name,url)
+def insertmany(anime_list)
+def search(pattern=None,animeID=None,n=None)
+def getlist(update=False)
+def getURLs(url)
+def get_anime1(url)
+
+'''
 
 def delay():
-    delay = 100+random.randint(0,400)
+    #pass
+    delay = random.randint(100,500)
     #print('delay :',delay,'ms')
     time.sleep(delay*0.001)
 
@@ -77,6 +90,7 @@ def search(pattern=None,animeID=None,n=None):
     c =  conn.cursor()
     values = {}
     query = 'select * from anime'
+    condition = ''
     if pattern:
         values['pat'] = '%'+pattern+'%'
         query = query + ' where name like :pat'
@@ -92,7 +106,7 @@ def search(pattern=None,animeID=None,n=None):
     if n:
         values['n']= n
         query = query+' limit :n'
-    print(query)
+    #print(query)
     resp = c.execute(query,values)
     resp_list = [{'id':a[0],'name':a[1],'url':a[2]} for a in resp.fetchall()]
     conn.close()
@@ -161,7 +175,10 @@ def getURLs(url):
 
 def get_anime1(url):
     delay()
-    for i in range(3):
+    for i in range(5):
+        if i==3:
+            pass
+            #webbrowser.open(url)
         print(url)
         resp     = req.get(url,headers=headers)
         text     = resp.content
@@ -173,8 +190,9 @@ def get_anime1(url):
             link = link[:link.find("\"".encode('utf-8'))]
         size =  get_size(link)
         if(size>0):
+            #print(size)
             break
-        print("retrying")
+        print("retrying ",i)
     
     return link,size
 
@@ -188,8 +206,15 @@ def get_size(url):
     except Exception as e:
         #print(e)
         return 0
+    #print("status code: ",resp.status_code)
     if resp.status_code == 404:
-        print(url,"\n not found error code:404")
+        print("\n not found error code:404")
+    if resp.status_code == 502:
+        print("\n An error occurred. error code:502")
+        return 0
+    if resp.status_code != 200:
+        print("status code: ",resp.status_code)
+        return 0
     for test in ["content-length","Content-Length"]:
         try:
             size = int(resp.headers[test])
@@ -198,6 +223,74 @@ def get_size(url):
             pass
             #print(e)
     return size
+
+def scrap(anime,limit):
+    url = anime['url']
+    name = anime['name']
+    start,end = limit
+    end = end + 1
+    url_list = getURLs(url)
+    webbrowser.open(url)
+    with open("out.txt","w",encoding='utf-8') as f:
+        i = 0
+        while i<len(url_list):
+            f.write(str(i+1)+" "+url_list[i]['name']+"\n")
+            i+=1
+    
+    link_list = []
+    size_list = []
+    SIZE = 5
+    with Pool(SIZE) as executor:
+        URLs  = [url['url'] for url in url_list[start:end]]
+        names = [url['name'] for url in url_list[start:end]]
+        link_list = executor.map(get_anime1,URLs)
+        size_list = [size[1] for size in link_list]
+        link_list = [link[0] for link in link_list]
+        link_list = [{'link':link,'name':name} for link,name in zip(link_list,names)]
+
+    #with Pool(SIZE) as executor:
+    #size_list = executor.map(get_size,[link['link'] for link in link_list])
+    """
+    for url in url_list[start:end]:
+        link = get_anime1(url['url'])
+        link_list.append({'link':link,'name':url['name']})
+    """
+    total_size = 0
+    with open(name+'.html','w',encoding='utf-8') as out:
+        out.write("<html>\n\t<body>")
+        out.write("<a href=%s>%s</a></br></br>"%(url,name))
+        #for link in link_list:
+        for link,size in zip(link_list,size_list):
+            #print(link['link'])
+            print('Scraping ',link['name'])
+            link_url  = link['link'].decode("utf-8")
+            link_name = link['name']
+
+            #html start
+            html = "<a href='%s' download='%s.mp4'>%s</a>"%(link_url,link_name,link_name)
+            #size = get_size(link_url)
+            size = size/(2**20)
+            total_size += size
+            style = "color:"
+            if size<35:
+                style += 'Green;'
+            elif size<50:
+                style += 'Grey;'
+            elif size<70:
+                style += 'Orange;'
+            else:
+                style += 'Red;'
+            html += "<span style='%s'> %.2f MB </span></br>\n"%(style,size)
+            #html end
+            
+            out.write(html)
+        out.write("<span> Total size = %.2f MB </span></br>\n"%total_size)
+        out.write("\t</body>\n</html>")
+        
+    webbrowser.open(name+'.html')
+
+    
+
 
 def main():
     pattern = input("Enter anime to be found:")
@@ -215,6 +308,7 @@ def main():
     url = anime_list[ch]['url']
     name = anime_list[ch]['name']
     url_list = getURLs(url)
+    webbrowser.open(url)
     with open("out.txt","w",encoding='utf-8') as f:
         i = 0
         while i<len(url_list):
@@ -308,6 +402,6 @@ def main():
     webbrowser.open(name+'.html')
     #getlist()
     #getlist(update=True)
-    
+
 if __name__=="__main__":
     main()

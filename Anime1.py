@@ -91,17 +91,24 @@ def search(pattern=None,animeID=None,n=None):
     values = {}
     query = 'select * from anime'
     condition = ''
+    where_added = False
     if pattern:
+        if not where_added:
+            query = query + ' where '
+            where_added = True
+        else:
+            query = query + ' and '
         values['pat'] = '%'+pattern+'%'
-        query = query + ' where name like :pat'
-        if animeID:
-            query = query + ' and id=:id'
-            values['id']=animeID
-    else:
-        if animeID:
-            query = query + ' where id=:id'
-            values['id']=animeID
-    
+        query = query + 'name like :pat'
+    if animeID:
+        if not where_added:
+            query = query + ' where '
+            where_added = True
+        else:
+            query = query + ' and '
+        query = query + 'id=:id'
+        values['id']=animeID
+            
     query = query + ' order by name'
     if n:
         values['n']= n

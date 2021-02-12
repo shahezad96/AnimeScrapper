@@ -256,6 +256,9 @@ def scrap(anime,limit):
         link_list.append({'link':link,'name':url['name']})
     """
     total_size = 0
+    if name.find(':'):
+        name = name.replace(':','-')
+    #print(name)
     with open(name+'.html','w',encoding='utf-8') as out:
         out.write("<html>\n\t<body>")
         out.write("<a href=%s>%s</a></br></br>"%(url,name))

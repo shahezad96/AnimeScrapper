@@ -118,6 +118,8 @@ class Application(tk.Frame):
         anime = self.anime_list[self.index]
         limit = (self.start,self.end)
         Anime1.scrap(anime,limit)
+        info = 'done'
+        self.wLbInfo["text"] = info
 
 def main():
     root = tk.Tk()

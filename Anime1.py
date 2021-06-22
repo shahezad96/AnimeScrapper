@@ -239,7 +239,7 @@ def scrap(anime,limit):
     start,end = limit
     end = end + 1
     url_list = getURLs(url)
-    webbrowser.open(url)
+    #webbrowser.open(url)
     with open("out.txt","w",encoding='utf-8') as f:
         i = 0
         while i<len(url_list):

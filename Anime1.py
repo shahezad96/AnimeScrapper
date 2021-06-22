@@ -196,8 +196,8 @@ def get_anime1(url):
             link = link[link.find("http://".encode('utf-8')):]
             link = link[:link.find("\"".encode('utf-8'))]
         size =  get_size(link)
-        if(size>0):
-            #print(size)
+        if(size>1024*5):
+            #print("size :",size)
             break
         print("retrying ",i)
     

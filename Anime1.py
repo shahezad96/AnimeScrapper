@@ -219,12 +219,14 @@ def get_size(url):
     if resp.status_code == 502:
         print("\n An error occurred. error code:502")
         return 0
-    if resp.status_code != 200:
+    if resp.status_code != 200 and resp.status_code !=301:
         print("status code: ",resp.status_code)
         return 0
     for test in ["content-length","Content-Length"]:
         try:
             size = int(resp.headers[test])
+            print("status code: ",resp.status_code)
+            print("size:",size)
             break
         except Exception as e:
             pass

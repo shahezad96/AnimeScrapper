@@ -8,13 +8,20 @@ class Application(tk.Frame):
         self.master = master
         #self.pack()
         self.grid()
-        self.create_widgets()
         self.anime_list = list()
         self.index = 0
         self.start=0
         self.end=0
+        self.qsearchOn = tk.BooleanVar(value=True)
+        self.create_widgets()
 
     def create_widgets(self):
+        self.tickQSearch = tk.Checkbutton(
+            self, text = " ",
+            variable = self.qsearchOn,
+            onvalue = True, offvalue = False
+            )
+
         self.wBtSearch              = tk.Button(self)
         self.wBtSearch["text"]      = "Search"
         self.wBtSearch["command"]   = self.search
@@ -43,6 +50,7 @@ class Application(tk.Frame):
         self.wEnInput  = tk.Entry(self)
         self.wEnInput.config(width=100)
         self.wEnInput.bind("<Return>", self.search)
+        self.wEnInput.bind("<KeyRelease>", self.quicksearch)
         
         self.wLbList   = tk.Listbox(self,selectmode=tk.SINGLE)
         self.wLbList.config(height=20,width=100)
@@ -51,6 +59,7 @@ class Application(tk.Frame):
         #self.wEnInput.pack(side="top")
         #self.wBtSearch.pack(side="left")
 
+        self.tickQSearch.grid(row=0, column=0)
         self.wEnInput.grid(row=0, column=1)
         self.wBtSearch.grid(row=0, column=2)
         self.wBtSelect.grid(row=0, column=3)
@@ -79,7 +88,12 @@ class Application(tk.Frame):
         while i<=len(anime_list):
             self.wLbList.insert(i,'%3d. %s'%(i,anime_list[i-1]['name']))
             i = i+1
-            
+
+    def quicksearch(self,event=None):
+        #print(self.qsearchOn.get())
+        if self.qsearchOn.get():
+            self.search()
+    
     def select(self,event=None):
         if len(self.anime_list)>0:
             selection = self.wLbList.curselection()
